@@ -5,6 +5,7 @@ import { GoogleSpreadsheet } from 'google-spreadsheet';
 import QRCodeIcon from '../../component/qr-code';
 import { Button, Col, Container, Form, Row, Spinner } from 'react-bootstrap';
 import { Environment } from '../../environment';
+import LogoIcon from '../../component/logo';
 
 const Wrapper = styled.div`
   display: flex;
@@ -13,8 +14,16 @@ const Wrapper = styled.div`
   min-height: 100vh;
 `;
 
+const Logo = styled(LogoIcon)`
+  width: 140px;
+  margin-bottom: 10px;
+`;
+
+const Title = styled.h4`
+  margin-bottom: 20px;
+`;
+
 const QRCodeContainer = styled.div`
-  height: 14rem;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -54,11 +63,12 @@ const VideoContainer = styled.div`
 const QRCodeButton = styled.button`
   background: none;
   border: none;
+  margin-top: 26px;
   &:disabled {
     opacity: 0.4;
   }
   img {
-    width: 180px;
+    width: 100%;
   }
 `;
 
@@ -69,7 +79,7 @@ const FormContainer = styled(Container)`
 `;
 
 const context = {};
-export default function QRScanner() {
+export default function QRScanner({ principal, signOut }) {
   const inputQuantityRef = useRef(null);
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
@@ -77,6 +87,7 @@ export default function QRScanner() {
   const [processing, setProcessing] = useState(false);
   const [readingQrCode, setReadingQrCode] = useState(false);
   const [product, setProduct] = useState({});
+  const [address, setAddress] = useState('');
   const [quantity, setQuantity] = useState('');
 
   function cleanState() {
@@ -87,6 +98,7 @@ export default function QRScanner() {
       description: '',
     });
     setQuantity('');
+    setAddress('');
     setReadingQrCode(false);
   }
 
@@ -103,7 +115,7 @@ export default function QRScanner() {
   function getCode() {
     const video = videoRef.current;
     const canvas = canvasRef.current;
-    
+
     const context = canvas.getContext("2d");
     canvas.height = video.videoHeight;
     canvas.width = video.videoWidth;
@@ -129,7 +141,7 @@ export default function QRScanner() {
 
     const stream = await navigator.mediaDevices.getUserMedia(constraints);
     context.stream = stream;
-    
+
     const video = videoRef.current;
     video.srcObject = stream;
     video.setAttribute("playsinline", true);
@@ -158,6 +170,9 @@ export default function QRScanner() {
   async function sendData() {
     setProcessing(true);
     const row = {
+      'NOME DO USUÁRIO': principal.username,
+      'CONTAGEM': principal.count,
+      'ENDEREÇO': `${address}`,
       'CÓDIGO': product.code,
       'DESCRIÇÃO': product.description,
       'UND': product.unit,
@@ -192,6 +207,17 @@ export default function QRScanner() {
   return (
     <Wrapper>
       <Row>
+        <Logo />
+        <Title>Lançar Inventário</Title>
+      </Row>
+      <Row>
+        <p>
+          <strong>Contagem</strong>: {principal.count}
+          <br />
+          <strong>Usuário</strong>: <a href="#" onClick={signOut}>{principal.username} (sair)</a>
+        </p>
+      </Row>
+      <Row>
         <QRCodeContainer>
           {readingQrCode && (<VideoContainer>
             <video ref={videoRef} muted autoPlay></video>
@@ -200,24 +226,24 @@ export default function QRScanner() {
             </Button>
           </VideoContainer>)}
           <canvas ref={canvasRef} hidden></canvas>
-          <QRCodeButton onClick={() => readQRCode()} disabled={product.code}>
-            <QRCodeIcon />
-          </QRCodeButton>
         </QRCodeContainer>
-        <FormContainer disabled={!product.code}>
-          <Form onSubmit={(e) => { e.preventDefault(); sendData();}}>
+        <FormContainer>
+          <Form onSubmit={(e) => { e.preventDefault(); sendData(); }}>
             <Row>
               <Col>
                 <Form.Group className="mb-3">
                   <Form.Label>Código</Form.Label>
                   <Form.Control type="text" readOnly value={product.code} />
                 </Form.Group>
-              </Col>
-              <Col>
                 <Form.Group className="mb-3">
                   <Form.Label>Unidade</Form.Label>
                   <Form.Control type="text" readOnly value={product.unit} />
                 </Form.Group>
+              </Col>
+              <Col>
+                <QRCodeButton type="button" onClick={() => readQRCode()} disabled={product.code}>
+                  <QRCodeIcon />
+                </QRCodeButton>
               </Col>
             </Row>
             <Row>
@@ -228,15 +254,23 @@ export default function QRScanner() {
                 </Form.Group>
               </Col>
             </Row>
-            <Row>
-              <Col>
+            <Row style={{ alignItems: "baseline" }}>
+              <Col xs={8}>
                 <Form.Group className="mb-3">
                   <Form.Label>
-                    Informe a Quantidade de:
+                    Informe a Quantidade:
                     <br />
-                    {product.unitType}
+                    <small>Tipo: {product.unitType}</small>
                   </Form.Label>
-                  <Form.Control ref={inputQuantityRef} size="lg" type="number" min="0" step=".01" readOnly={processing} value={quantity} onKeyPress={handleQuantityKeyPress} onChange={(e) => setQuantity(`${e.target.value}`)} />
+                  <Form.Control required ref={inputQuantityRef} size="lg" type="number" min="0" step=".01" disabled={!product.code} readOnly={processing} value={quantity} onKeyPress={handleQuantityKeyPress} onChange={(e) => setQuantity(`${e.target.value}`)} />
+                </Form.Group>
+              </Col>
+              <Col xs={4}>
+                <Form.Group className="mb-3">
+                  <Form.Label>
+                    Endereço:
+                  </Form.Label>
+                  <Form.Control required size="lg" type="text" disabled={!product.code} readOnly={processing} value={address} onChange={(e) => setAddress(`${e.target.value}`)} />
                 </Form.Group>
               </Col>
             </Row>
