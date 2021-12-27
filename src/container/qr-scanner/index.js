@@ -10,11 +10,11 @@ const Wrapper = styled.div`
   display: flex;
   flex-direction: column;
   justify-content: center;
-
+  min-height: 100vh;
 `;
 
 const QRCodeContainer = styled.div`
-  height: 20rem;
+  height: 14rem;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -58,7 +58,7 @@ const QRCodeButton = styled.button`
     opacity: 0.4;
   }
   img {
-    width: 200px;
+    width: 180px;
   }
 `;
 
@@ -158,8 +158,10 @@ export default function QRScanner() {
   async function sendData() {
     setProcessing(true);
     const row = {
-      ...product,
-      quantity,
+      'CÓDIGO': product.code,
+      'DESCRIÇÃO': product.description,
+      'UND': product.unit,
+      'QUANTITY': quantity,
     };
     const document = new GoogleSpreadsheet(Environment.spreadsheetId);
     try {
@@ -173,6 +175,7 @@ export default function QRScanner() {
       await sheet.addRow(row);
       cleanState();
     } catch (e) {
+      alert('Um erro ocorreu ao enviar os dados!');
       console.error('Error: ', e);
     } finally {
       setProcessing(false);
@@ -182,71 +185,71 @@ export default function QRScanner() {
   return (
     <Wrapper>
       <Row>
-      <QRCodeContainer>
-        {readingQrCode && (<VideoContainer>
-          <video ref={videoRef} muted autoPlay></video>
-          <Button variant="danger" onClick={() => closeReadQRCode()}>
-            Cancelar
-          </Button>
-        </VideoContainer>)}
-        <canvas ref={canvasRef} hidden></canvas>
-        <QRCodeButton onClick={() => readQRCode()} disabled={product.code}>
-          <QRCodeIcon />
-        </QRCodeButton>
-      </QRCodeContainer>
-      <FormContainer disabled={!product.code}>
-        <Form onSubmit={(e) => { e.preventDefault(); !processing || sendData();}}>
-          <Row>
-            <Col>
-              <Form.Group className="mb-3">
-                <Form.Label>Código</Form.Label>
-                <Form.Control type="text" readOnly value={product.code} />
-              </Form.Group>
-            </Col>
-            <Col>
-              <Form.Group className="mb-3">
-                <Form.Label>Unidade</Form.Label>
-                <Form.Control type="text" readOnly value={product.unit} />
-              </Form.Group>
-            </Col>
-          </Row>
-          <Row>
-            <Col>
-              <Form.Group className="mb-3">
-                <Form.Label>Descrição</Form.Label>
-                <Form.Control as="textarea" rows={3} readOnly value={product.description} />
-              </Form.Group>
-            </Col>
-          </Row>
-          <Row>
-            <Col>
-              <Form.Group className="mb-3">
-                <Form.Label>
-                  Informe a Quantidade de:
+        <QRCodeContainer>
+          {readingQrCode && (<VideoContainer>
+            <video ref={videoRef} muted autoPlay></video>
+            <Button variant="danger" onClick={() => closeReadQRCode()}>
+              Cancelar
+            </Button>
+          </VideoContainer>)}
+          <canvas ref={canvasRef} hidden></canvas>
+          <QRCodeButton onClick={() => readQRCode()} disabled={product.code}>
+            <QRCodeIcon />
+          </QRCodeButton>
+        </QRCodeContainer>
+        <FormContainer disabled={!product.code}>
+          <Form onSubmit={(e) => { e.preventDefault(); sendData();}}>
+            <Row>
+              <Col>
+                <Form.Group className="mb-3">
+                  <Form.Label>Código</Form.Label>
+                  <Form.Control type="text" readOnly value={product.code} />
+                </Form.Group>
+              </Col>
+              <Col>
+                <Form.Group className="mb-3">
+                  <Form.Label>Unidade</Form.Label>
+                  <Form.Control type="text" readOnly value={product.unit} />
+                </Form.Group>
+              </Col>
+            </Row>
+            <Row>
+              <Col>
+                <Form.Group className="mb-3">
+                  <Form.Label>Descrição</Form.Label>
+                  <Form.Control as="textarea" rows={3} readOnly value={product.description} />
+                </Form.Group>
+              </Col>
+            </Row>
+            <Row>
+              <Col>
+                <Form.Group className="mb-3">
+                  <Form.Label>
+                    Informe a Quantidade de:
+                    <br />
+                    {product.unitType}
+                  </Form.Label>
+                  <Form.Control ref={inputQuantityRef} size="lg" type="tel" readOnly={processing} value={quantity} onChange={(e) => setQuantity(Number(e.target.value))} />
+                </Form.Group>
+              </Col>
+            </Row>
+            <Row>
+              <Col>
+                <div className="d-grid gap-2">
                   <br />
-                  {product.unitType}
-                </Form.Label>
-                <Form.Control ref={inputQuantityRef} size="lg" type="tel" readOnly={processing} value={quantity} onChange={(e) => setQuantity(Number(e.target.value))} />
-              </Form.Group>
-            </Col>
-          </Row>
-          <Row>
-            <Col>
-              <div className="d-grid gap-2">
-                <br />
-                <Button variant="primary" type="submit" disabled={!product.code}>
-                  {processing && 'Enviar'}
-                  {!processing && (<Spinner animation="border" role="status"></Spinner>)}
-                </Button>
-                <Button variant="light" disabled={!product.code || processing} onClick={() => cleanState()}>
-                  Cancelar
-                </Button>
-                <br />
-              </div>
-            </Col>
-          </Row>
-        </Form>
-      </FormContainer>
+                  <Button variant="primary" type="submit" size="lg" disabled={!product.code}>
+                    {!processing && 'Enviar'}
+                    {processing && (<Spinner animation="border" role="status"></Spinner>)}
+                  </Button>
+                  <Button variant="light" disabled={!product.code || processing} onClick={() => cleanState()}>
+                    Cancelar
+                  </Button>
+                  <br />
+                </div>
+              </Col>
+            </Row>
+          </Form>
+        </FormContainer>
       </Row>
     </Wrapper>
   )
