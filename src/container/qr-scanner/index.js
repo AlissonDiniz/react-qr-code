@@ -182,6 +182,13 @@ export default function QRScanner() {
     }
   }
 
+  function handleQuantityKeyPress(event) {
+    if (`${event.key}`.match(/[^-.\d]/)) {
+      event.preventDefault();
+      return false;
+    }
+  }
+
   return (
     <Wrapper>
       <Row>
@@ -229,7 +236,7 @@ export default function QRScanner() {
                     <br />
                     {product.unitType}
                   </Form.Label>
-                  <Form.Control ref={inputQuantityRef} size="lg" type="tel" readOnly={processing} value={quantity} onChange={(e) => setQuantity(Number(e.target.value))} />
+                  <Form.Control ref={inputQuantityRef} size="lg" type="number" min="0" step=".01" readOnly={processing} value={quantity} onKeyPress={handleQuantityKeyPress} onChange={(e) => setQuantity(`${e.target.value}`)} />
                 </Form.Group>
               </Col>
             </Row>
