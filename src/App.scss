@@ -1,0 +1,25 @@
+// 0093d0
+
+/* The following block can be included in a custom.scss */
+
+/* import bootstrap to set changes */
+@import "~bootstrap/scss/bootstrap";
+
+h1, h2, h3, h4, h5 {
+  color: #242424;
+  font-weight: 200;
+}
+label, input, input.form-control, select, select.form-select {
+  color: #242424;
+  font-weight: 200;
+}
+
+.btn-custom {
+  color: #fff;
+  background-color: #428aca;
+  border-color: #428aca;
+
+  &:hover, &.active, &:focus {
+    color: #fff;
+  }
+}
