@@ -51,7 +51,7 @@ const InstallMessage = styled.div`
   max-width: 400px;
 `;
 const InstallMessageIcon = styled.img`
-  width: 80%;
+  width: 60%;
   margin-bottom: 1.4rem;
 `;
 const InstallMessageText = styled.div`
@@ -85,7 +85,7 @@ export default function Login({ signIn, settings }) {
   const [showInstallMessage, setShowInstallMessage] = useState((('standalone' in window.navigator) && !(window.navigator.standalone)));
 
   function closeInstallMessage() {
-    setShowInstallMessage({ showInstallMessage: false });
+    setShowInstallMessage(false);
   }
 
   async function logIn() {
